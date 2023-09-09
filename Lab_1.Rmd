@@ -1,0 +1,329 @@
+---
+title: "Laboratorio 1- Análisis estadístico de datos extremales"
+author: "laura montaldo"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Distrubiciones extremales
+### Weibull
+
+
+
+```{r datos}
+ x_aux<-seq(-10, 10, length=100)
+head( x_aux)
+```
+
+
+```{r plot, echo=FALSE}
+alpha<- 2.6 # definimos un alfa cualquiera (>0)
+plot(x_aux, exp(-(-x_aux)^alpha), type="l", log="", ylab="F(X)", xlab="X", main="Distribucion de Weibull") # recordemos que la definimos para X<0, luego vale 1
+points(x_aux, 1-pweibull(-x_aux, shape=alpha, scale=1), col="red")
+abline(v=0)
+```
+
+
+```{r plot2, echo=FALSE}
+par(mfrow=c(3,1), mar=c(5,4,3,1))
+plot(x_aux, 1-pweibull(q=-x_aux, shape=2, scale=1) ,xlim=c(-5,5), type="l", ylab="F(x)", xlab="x", main="Weibull")
+lines(x_aux, 1-pweibull(q=-x_aux, shape=1.1, scale=1), col="red")
+
+plot(x_aux, dweibull(x=-x_aux, shape=2, scale=1, log = FALSE) ,xlim=c(-5,5), type="l", ylab="f(x)", xlab="x")
+lines(x_aux, dweibull(x=-x_aux, shape=1.1, scale=1, log = FALSE), col="red") #
+```
+
+```{r plot3, echo=FALSE}
+randomWeibull1<-rweibull(1000, shape=2)
+randomWeibull2<-rweibull(1000, shape=1.1)
+
+plot(density(randomWeibull1), main="Weibul de una muestra aleatoria")
+lines(density(randomWeibull2),col="red")
+```
+
+## Gumbel
+```{r evd}
+require(evd)
+par(mfrow=c(3,1), mar=c(5,4,3,1))
+plot(seq(-10,10,length=100), pgumbel(q=seq(-10,10,length=100), loc=0, scale=1) ,xlim=c(-10,10), type="l", ylab="F(x)", xlab="x", main="Gumbel")
+lines(seq(-10,10,length=100), pgumbel(q=seq(-10,10,length=100), loc=0, scale=2), col="red")
+
+plot(x_aux, dgumbel(x=x_aux, loc=0, scale=1, log = FALSE) ,xlim=c(-10,10), type="l", ylab="f(x)", xlab="x")
+lines(x_aux, dgumbel(x=x_aux, loc=0, scale=2, log = FALSE), col="red") # Cambio la escala de la Gumbel
+```
+
+
+
+```{r plot4, echo=FALSE}
+x_aux<- seq(-10,10, length=1000)
+par(mfrow=c(3,1), mar=c(5,4,3,1))
+plot(seq(-10,10,length=100), pgumbel(q=seq(-10,10,length=100), loc=0, scale=1) ,xlim=c(-10,10), type="l", ylab="F(x)", xlab="x", main="Gumbel")
+lines(seq(-10,10,length=100), pgumbel(q=seq(-10,10,length=100), loc=0, scale=2), col="red")
+
+plot(x_aux, dgumbel(x=x_aux, loc=0, scale=1, log = FALSE) ,xlim=c(-10,10), type="l", ylab="f(x)", xlab="x")
+lines(x_aux, dgumbel(x=x_aux, loc=0, scale=2, log = FALSE), col="red") # Cambio la escala de la Gumbe
+```
+
+
+```{r}
+GumbelAleatorio<-rgumbel(100)
+-digamma(1)
+mean(rgumbel(1000))
+sd(rgumbel(1000))
+```
+
+
+
+
+```{r plot5, echo=FALSE}
+plot(density(GumbelAleatorio))
+```
+
+### Frechet
+```{r plot6, echo=FALSE}
+par(mfrow=c(3,1), mar=c(5,4,3,1))
+plot(seq(-10,10,length=100), pfrechet(q=seq(-10,10,length=100), shape=2, scale=1) ,xlim=c(-2,10), type="l", ylab="F(x)", xlab="x", main="Frechet")
+lines(seq(-10,10,length=100), pfrechet(q=seq(-10,10,length=100), shape=1.1, scale=1),col= "red")
+
+plot(x_aux, dfrechet(x=x_aux, shape=2, scale=1, log = FALSE) ,xlim=c(-2,10), type="l", ylab="f(x)", xlab="x")
+lines(x_aux, dfrechet(x=x_aux, shape=1.1, scale=1, log = FALSE), col="red")
+```
+
+
+### GEV Distribución Extremal Generalizada (DEG)
+
+```{r plot7, echo=FALSE}
+plot(seq(-10,10,length=100), dgev(x=seq(-10,10,length=100), shape=2, scale=1) ,xlim=c(-5,5), type="l", ylab="F(x)", xlab="x", main="GEV")
+lines(seq(-10,10,length=100), dgev(x=seq(-10,10,length=100), shape=0, scale=1),col= "red")
+```
+```{r}
+require(ismev)
+```
+
+```{r}
+set.seed(69)
+Unif<-runif(1000, 2, 55)
+max(Unif)
+min(Unif)
+```
+
+```{r plot8, echo=FALSE}
+hist(Unif)
+```
+
+
+```{r plot9, echo=FALSE}
+plot(Unif, type="p")
+```
+
+
+```{r include=FALSE}
+# Tomemos los maximos de periodos que incluyen 10 registros cada uno
+selPeriodo<-as.factor(rep(1:100, each=10)) # Genera variable auxiliar que marca bins de 10 registros
+# La capacidad de anidar funciones en R para hacer calculos con bases complejas es muy grande.
+maxUnif<-unlist(lapply( split(Unif, selPeriodo), max))# Aqui utilizamos en un mismo renglon las funciones unlist, lapply, split y max (poner ?unlist o help(unlist))
+```
+
+```{r plot10, echo=FALSE}
+plot(maxUnif, ylim=c(2,55))
+points(as.numeric(selPeriodo), Unif, pch=16, col="gray", cex=0.4)
+```
+
+```{r}
+# Segun el Teorema de Fischer-Tippet-Gnedenko (FTG), Teorema 3, pg 12 y por la Observación 9 pg 13, debería ajustar bien una Weibull- por que la variable generadora es acotada
+# Que en el caso de la distribucion de valores extremos generalizada (GEV, pg 34), corresponde a un valor del indice negativo.
+# Esta funcion ajusta por maxima verosimilitud los parametros de posicion, escala e indice
+modUnif<-gev.fit(maxUnif) # la funcion gev.fit ajusta una GEV por mve y lo salva en el objeto "modUnif"
+```
+
+
+```{r}
+str(modUnif)
+```
+
+```{r}
+modUnif$mle
+```
+
+
+
+
+```{r}
+data.frame(parameter=c("posicion", "escala","indice"), Estimado=round(modUnif$mle,3), SE=modUnif$se)
+```
+
+### NORMAL
+
+```{r echo=FALSE}
+set.seed(32)
+Norm<-rnorm(10000, 20, 1)
+hist(Norm)
+```
+
+
+
+```{r echo=FALSE}
+plot(Norm, type="p")
+```
+
+```{r echo=FALSE}
+# Tomemos los maximos de periodos de 10 registros cada uno
+selPeriodo<-as.factor(rep(1:100, each=100))
+maxNorm<-unlist(lapply( split(Norm, selPeriodo), max)) 
+plot(maxNorm)
+```
+
+
+
+```{r}
+# ¿Cual es el valor esperado del indice?
+modNorm<-gev.fit(maxNorm)
+```
+
+
+```{r}
+data.frame(parameter=c("posicion", "escala","indice"), Estimate=round(modNorm$mle,3), SE=modNorm$se)
+```
+
+
+```{r}
+modNorm$mle[3]+ 1.96* modNorm$se[3]
+```
+
+
+```{r}
+modNorm$mle[3]- 1.96* modNorm$se[3]
+```
+
+
+
+```{r}
+require(evd)
+n=200
+set.seed(69)
+randomWeibull<-rweibull(n=n, shape=1.5, scale=1)
+randomFrechet<-rfrechet(n=n, loc=0, shape= 2, scale=1) # loc es posicion, shape= es el parametro de forma (indice), scale= es la variabilidad  
+MixtureDist<-cbind(randomWeibull, randomFrechet)
+```
+
+
+```{r echo=FALSE}
+plot(randomWeibull, col="green", ylim=c(0, max(MixtureDist)), ylab="X, Y")
+points(randomFrechet, col="blue")
+legend("topright",legend=c("Weibull", "Frechet"), col=c("green","blue"), bty="n", pch=1)
+```
+
+
+```{r}
+#max(X,Y)
+maxDist<-apply(MixtureDist, 1 ,max)
+modMixture<-gev.fit(maxDist)
+```
+
+```{r}
+modFrech<-gev.fit(randomFrechet)
+```
+
+```{r}
+data.frame(round(modFrech$mle,3), c("posicion", "escala","indice"))
+```
+
+```{r}
+1/0.44 # cercano a 2 que asignamos en la creación de la variable aleatoria (shape=2).
+```
+
+```{r echo=FALSE}
+data.frame(parameter=c("posicion", "escala","indice"), Estimate=round(modMixture$mle,3), SE=modMixture$se)
+```
+
+### OZONO
+```{r echo=FALSE}
+O3<-c(430.3, 115.7,4.48, 26.95, 72.27,206.4, 22.79,25.03,226.8,11.1,1572,100,104.5,37.1,20.22,106.9,47.2,62.82,39.3,18.52,41.57,429.5,1228,127.6,9.93,90.4,201.7,295.1,20.62,20.58,538.1,804,321.6,16.11,22.05,100.2,40.76,262.7,19.32,
+7.79,58.02,28.02,18.38,13.12,572.8,44.46,40.72,25.07,24.07,511.8,38.12,15.86,75.84,24.09,119.4,174.7,104.7,140,79.67,158,25.46,462.5,35.53,876.4,462.5,53.47,23.59,38.77,494.2,164.2,52.06,54.13,15.53,29,14.35,1675,15.01,72.07,22.99)
+
+plot(O3)
+```
+
+
+
+```{r}
+# Ajustamos a estos datos por maxima verosimiliud una distribución extremal generalizada
+modO3<-gev.fit(O3)
+```
+
+```{r}
+str(modO3)
+```
+
+```{r}
+modO3$mle
+```
+
+```{r}
+modO3shift<-gev.fit(O3-15)
+```
+
+```{r}
+# Resumen del ajuste (debo hacerlo manualmente pues no hay una funcion equivalente al summary)
+data.frame(parameter=c("posicion", "escala","indice"), cbind(Estimate=modO3$mle, se=modO3$se))
+```
+
+
+```{r}
+data.frame(parameter=c("posicion", "escala","indice"), cbind(Estimate=modO3shift$mle, se=modO3shift$se))
+```
+
+
+```{r echo=FALSE}
+# Grafico el valor del parámetro que determina cuan pesada es la cola de la distribución
+#jpeg("indiceO3.jpeg", res=200, width=5,height=5, units="in") # Esta función jpeg permite exportar los gráficos.
+plot(1:3, c(modUnif$mle[3], modNorm$mle[3], modO3$mle[3]), ylab="Indice", xlab="", ylim=c(-2,2), axes=FALSE)
+segments(1, modUnif$mle[3]-(modUnif$se[3]*1.96), 1, modUnif$mle[3]+(modUnif$se[3]*1.96)) 
+segments(2, modNorm$mle[3]-(modNorm$se[3]*1.96), 2, modNorm$mle[3]+(modNorm$se[3]*1.96)) 
+segments(3, modO3$mle[3]-(modO3$se[3]*1.96), 3, modO3$mle[3]+(modO3$se[3]*1.96)) # notese que el intervalo es el IdC
+abline(h=0,lty=2, col="grey")
+axis(1, at=1:3, labels=c("Uniforme", "Normal", "Datos O3")); box(); axis(2)
+```
+
+## Niveles y tiempo de retorno
+
+```{r}
+# Ajustemos la distribución extremal con el paquete extRemes y la función "fevd". Ajusto por Maxima verosimilitud
+library(extRemes)
+modNormext<-fevd(maxNorm) 
+modNormext$results$par
+```
+
+
+
+```{r}
+# nombro un vector con los parámetros ajustados
+a<-modNormext$results$par
+# comparamos con los resultados del ajuste que hicimos previamente
+modNorm$mle
+```
+
+
+```{r}
+# Estimemos el valor de retorno para los 10 años
+return.level(modNormext, return.period = c(10), do.ci=TRUE)
+```
+
+
+```{r echo=FALSE}
+par(mar=c(5,4,1,1))
+plot(modNormext)
+```
+
+
+## EJERCICIOS
+### Ejercicio 1 del teórico (pg. 33 5)
+### Determinar si la distribución log-normal (log X es normal) tiene DEA y si la tiene, determinar cuál es su DEA
+
+
+
+
